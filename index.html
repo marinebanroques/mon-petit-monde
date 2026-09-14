@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Mon Petit Monde</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#4f7a3f">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<style>
+  :root {
+    --bg: #f0f5ec;
+    --surface: #ffffff;
+    --ink: #2a332a;
+    --ink-soft: #6b7a63;
+    --accent: #4f7a3f;
+    --accent-soft: #dcead0;
+    --border: #d8e5cd;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    padding-bottom: 90px;
+  }
+  header {
+    padding: 20px 16px 8px;
+    text-align: center;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 22px;
+    letter-spacing: 0.3px;
+  }
+  .tabs {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--ink-soft);
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .tab.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  main { padding: 0 16px; max-width: 640px; margin: 0 auto; }
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  input[type=text], select, textarea, input[type=file] {
+    font-family: inherit;
+    font-size: 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .search-box { flex: 2; min-width: 140px; }
+  .sort-box { flex: 1; min-width: 120px; }
+  .card-list { display: flex; flex-direction: column; gap: 10px; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .card img {
+    width: 52px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 8px;
+    background: var(--accent-soft);
+    flex-shrink: 0;
+  }
+  .card .cover-placeholder {
+    width: 52px;
+    height: 72px;
+    border-radius: 8px;
+    background: var(--accent-soft);
+    flex-shrink: 0;
+  }
+  .card-body { flex: 1; min-width: 0; }
+  .card-body h3 { margin: 0 0 2px; font-size: 15px; }
+  .card-body .meta { font-size: 12px; color: var(--ink-soft); margin-bottom: 4px; }
+  .card-body p { margin: 0; font-size: 13px; color: var(--ink-soft); }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+  .tag-chip {
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .tag-chip.filterable { cursor: pointer; }
+  .tag-chip.selected { background: var(--accent); color: white; }
+  .card-actions { display: flex; flex-direction: column; gap: 6px; }
+  .icon-btn {
+    border: none;
+    background: transparent;
+    font-size: 15px;
+    cursor: pointer;
+    color: var(--ink-soft);
+    padding: 2px 4px;
+  }
+  .fab {
+    position: fixed;
+    bottom: 22px;
+    right: 22px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    font-size: 28px;
+    border: none;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+    cursor: pointer;
+  }
+  .empty-state {
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 14px;
+    padding: 40px 20px;
+  }
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 100;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    width: 100%;
+    max-width: 640px;
+    border-radius: 18px 18px 0 0;
+    padding: 20px;
+    max-height: 88vh;
+    overflow-y: auto;
+  }
+  .modal h2 { margin-top: 0; font-size: 18px; }
+  .field { margin-bottom: 12px; display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 12px; color: var(--ink-soft); }
+  .field input, .field textarea { width: 100%; }
+  .field textarea { min-height: 80px; resize: vertical; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+  .btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-secondary { background: var(--bg); color: var(--ink-soft); border: 1px solid var(--border); }
+  .cover-preview {
+    width: 70px;
+    height: 96px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: var(--accent-soft);
+    margin-bottom: 8px;
+  }
+  .priority-badge {
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-weight: 600;
+    display: inline-block;
+  }
+  .priority-basse { background: #dcead0; color: #4f7a3f; }
+  .priority-moyenne { background: #f7e4bf; color: #a06e1f; }
+  .priority-haute { background: #f3d3cd; color: #b23f2d; }
+  .liste-chip {
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--ink-soft);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .liste-chip.selected { background: var(--accent); color: white; border-color: var(--accent); }
+  .liste-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    margin-bottom: 14px;
+  }
+  .task-checkbox {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    accent-color: var(--accent);
+    margin-top: 2px;
+  }
+  .todo-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .todo-header h2 { font-size: 16px; margin: 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌿 Mon Petit Monde</h1>
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-tab="livres">📚 Livres</div>
+  <div class="tab" data-tab="notes">📝 Notes</div>
+  <div class="tab" data-tab="todo">✅ To do</div>
+</div>
+
+<main>
+  <!-- LIVRES -->
+  <section id="view-livres">
+    <div class="toolbar">
+      <input type="text" id="livres-search" class="search-box" placeholder="Rechercher un livre, un auteur...">
+      <select id="livres-sort" class="sort-box">
+        <option value="date-desc">Récents d'abord</option>
+        <option value="date-asc">Anciens d'abord</option>
+        <option value="title-asc">Titre A→Z</option>
+        <option value="title-desc">Titre Z→A</option>
+        <option value="auteur-asc">Auteur A→Z</option>
+        <option value="serie">Par série (tomes ensemble)</option>
+      </select>
+    </div>
+    <div id="livres-tagfilter" class="tag-row"></div>
+    <div id="livres-list" class="card-list"></div>
+  </section>
+
+  <!-- NOTES -->
+  <section id="view-notes" style="display:none;">
+    <div class="toolbar">
+      <input type="text" id="notes-search" class="search-box" placeholder="Rechercher une note...">
+    </div>
+    <div id="notes-tagfilter" class="tag-row"></div>
+    <div id="notes-list" class="card-list"></div>
+  </section>
+
+  <!-- TODO -->
+  <section id="view-todo" style="display:none;">
+    <div id="todo-listrow" class="liste-row"></div>
+    <div id="todo-empty-listes" class="empty-state" style="display:none;">Crée ta première liste avec le bouton +</div>
+    <div id="todo-content" style="display:none;">
+      <div class="todo-header">
+        <h2 id="todo-current-liste-name"></h2>
+        <button class="icon-btn" id="todo-delete-liste">🗑️ Supprimer la liste</button>
+      </div>
+      <div class="toolbar">
+        <select id="todo-sort" class="sort-box" style="flex:1;">
+          <option value="echeance">Échéance la plus proche</option>
+          <option value="priorite">Priorité (haute d'abord)</option>
+          <option value="date-desc">Ajout récent</option>
+        </select>
+      </div>
+      <div id="todo-tagfilter" class="tag-row"></div>
+      <div id="todo-list" class="card-list"></div>
+    </div>
+  </section>
+</main>
+
+<button class="fab" id="fab-add">+</button>
+
+<!-- MODAL LIVRE -->
+<div class="modal-overlay" id="modal-livre">
+  <div class="modal">
+    <h2 id="livre-modal-title">Ajouter un livre</h2>
+    <input type="hidden" id="livre-id">
+    <div class="field">
+      <label>Couverture (optionnelle)</label>
+      <img id="livre-cover-preview" class="cover-preview" style="display:none;">
+      <input type="file" id="livre-cover-input" accept="image/*">
+    </div>
+    <div class="field">
+      <label>Titre *</label>
+      <input type="text" id="livre-titre" placeholder="Le titre du livre">
+    </div>
+    <div class="field">
+      <label>Auteur(s) — séparés par des ; si plusieurs</label>
+      <input type="text" id="livre-auteur" placeholder="Ex: Isaac Asimov; Robert Silverberg">
+    </div>
+    <div style="display:flex; gap:10px;">
+      <div class="field" style="flex:2;">
+        <label>Série (optionnel)</label>
+        <input type="text" id="livre-serie" placeholder="Ex: Fondation">
+      </div>
+      <div class="field" style="flex:1;">
+        <label>Tome</label>
+        <input type="text" id="livre-tome" placeholder="1">
+      </div>
+    </div>
+    <div class="field">
+      <label>Résumé</label>
+      <textarea id="livre-resume" placeholder="De quoi ça parle..."></textarea>
+    </div>
+    <div class="field">
+      <label>Tags / genre (séparés par des virgules)</label>
+      <input type="text" id="livre-tags" placeholder="fantasy, jeunesse, saga">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="livre-cancel">Annuler</button>
+      <button class="btn btn-primary" id="livre-save">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOTE -->
+<div class="modal-overlay" id="modal-note">
+  <div class="modal">
+    <h2 id="note-modal-title">Ajouter une note</h2>
+    <input type="hidden" id="note-id">
+    <div class="field">
+      <label>Titre *</label>
+      <input type="text" id="note-titre" placeholder="Titre de la note">
+    </div>
+    <div class="field">
+      <label>Contenu</label>
+      <textarea id="note-texte" placeholder="Écris ta note..." style="min-height:140px;"></textarea>
+    </div>
+    <div class="field">
+      <label>Tags / catégories (séparés par des virgules)</label>
+      <input type="text" id="note-tags" placeholder="idées, perso, projet">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="note-cancel">Annuler</button>
+      <button class="btn btn-primary" id="note-save">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL LISTE -->
+<div class="modal-overlay" id="modal-liste">
+  <div class="modal">
+    <h2>Nouvelle liste</h2>
+    <div class="field">
+      <label>Nom de la liste</label>
+      <input type="text" id="liste-nom" placeholder="Ex: Maison, Travail...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="liste-cancel">Annuler</button>
+      <button class="btn btn-primary" id="liste-save">Créer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TACHE -->
+<div class="modal-overlay" id="modal-tache">
+  <div class="modal">
+    <h2 id="tache-modal-title">Ajouter une tâche</h2>
+    <input type="hidden" id="tache-id">
+    <div class="field">
+      <label>Tâche *</label>
+      <input type="text" id="tache-texte" placeholder="Que faut-il faire ?">
+    </div>
+    <div style="display:flex; gap:10px;">
+      <div class="field" style="flex:1;">
+        <label>Échéance (optionnelle)</label>
+        <input type="date" id="tache-date">
+      </div>
+      <div class="field" style="flex:1;">
+        <label>Priorité</label>
+        <select id="tache-priorite">
+          <option value="basse">Basse</option>
+          <option value="moyenne" selected>Moyenne</option>
+          <option value="haute">Haute</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <div class="field" style="flex:1;">
+        <label>Récurrence</label>
+        <select id="tache-recurrence">
+          <option value="aucune">Aucune</option>
+          <option value="daily">Quotidienne</option>
+          <option value="weekly">Hebdomadaire</option>
+          <option value="monthly">Mensuelle</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Tags (séparés par des virgules)</label>
+      <input type="text" id="tache-tags" placeholder="Ex: urgent, courses">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="tache-cancel">Annuler</button>
+      <button class="btn btn-primary" id="tache-save">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- IndexedDB setup ----------
+let db;
+const DB_NAME = "MonPetitMondeDB";
+const DB_VERSION = 2;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const database = e.target.result;
+      if (!database.objectStoreNames.contains("livres")) {
+        database.createObjectStore("livres", { keyPath: "id" });
+      }
+      if (!database.objectStoreNames.contains("notes")) {
+        database.createObjectStore("notes", { keyPath: "id" });
+      }
+      if (!database.objectStoreNames.contains("listes")) {
+        database.createObjectStore("listes", { keyPath: "id" });
+      }
+      if (!database.objectStoreNames.contains("taches")) {
+        database.createObjectStore("taches", { keyPath: "id" });
+      }
+    };
+    req.onblocked = () => {
+      alert("Mise à jour de l'app en attente : ferme les autres onglets/fenêtres où \"Mon Petit Monde\" est ouvert, puis recharge cette page.");
+    };
+    req.onsuccess = (e) => {
+      db = e.target.result;
+      db.onversionchange = () => {
+        db.close();
+        alert("Une nouvelle version de l'app a été chargée ailleurs. Recharge cette page.");
+      };
+      resolve(db);
+    };
+    req.onerror = (e) => reject(e);
+  });
+}
+
+function storeGetAll(storeName) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, "readonly");
+    const req = tx.objectStore(storeName).getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = (e) => reject(e);
+  });
+}
+
+function storePut(storeName, item) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, "readwrite");
+    tx.objectStore(storeName).put(item);
+    tx.oncomplete = () => resolve();
+    tx.onerror = (e) => reject(e);
+  });
+}
+
+function storeDelete(storeName, id) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, "readwrite");
+    tx.objectStore(storeName).delete(id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = (e) => reject(e);
+  });
+}
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+// ---------- State ----------
+let livres = [];
+let notes = [];
+let listes = [];
+let taches = [];
+let livresTagFilter = null;
+let notesTagFilter = null;
+let editingLivreId = null;
+let editingNoteId = null;
+let editingTacheId = null;
+let pendingCoverData = null;
+let currentListeId = null;
+let todoTagFilter = null;
+
+// ---------- Tabs ----------
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    const target = tab.dataset.tab;
+    document.getElementById("view-livres").style.display = target === "livres" ? "" : "none";
+    document.getElementById("view-notes").style.display = target === "notes" ? "" : "none";
+    document.getElementById("view-todo").style.display = target === "todo" ? "" : "none";
+  });
+});
+
+function currentTab() {
+  return document.querySelector(".tab.active").dataset.tab;
+}
+
+// ---------- Rendering: Livres ----------
+function getAllTags(items) {
+  const set = new Set();
+  items.forEach(i => (i.tags || []).forEach(t => set.add(t)));
+  return [...set].sort();
+}
+
+function renderLivresTagFilter() {
+  const container = document.getElementById("livres-tagfilter");
+  const tags = getAllTags(livres);
+  container.innerHTML = "";
+  tags.forEach(tag => {
+    const chip = document.createElement("span");
+    chip.className = "tag-chip filterable" + (livresTagFilter === tag ? " selected" : "");
+    chip.textContent = tag;
+    chip.onclick = () => {
+      livresTagFilter = livresTagFilter === tag ? null : tag;
+      renderLivresTagFilter();
+      renderLivres();
+    };
+    container.appendChild(chip);
+  });
+}
+
+function renderLivres() {
+  const search = document.getElementById("livres-search").value.trim().toLowerCase();
+  const sort = document.getElementById("livres-sort").value;
+  let list = livres.filter(l => {
+    const matchesSearch = !search ||
+      l.titre.toLowerCase().includes(search) ||
+      (l.auteurs || []).join(" ").toLowerCase().includes(search) ||
+      (l.serie || "").toLowerCase().includes(search);
+    const matchesTag = !livresTagFilter || (l.tags || []).includes(livresTagFilter);
+    return matchesSearch && matchesTag;
+  });
+
+  list.sort((a, b) => {
+    if (sort === "date-desc") return b.dateAdded - a.dateAdded;
+    if (sort === "date-asc") return a.dateAdded - b.dateAdded;
+    if (sort === "title-asc") return a.titre.localeCompare(b.titre);
+    if (sort === "title-desc") return b.titre.localeCompare(a.titre);
+    if (sort === "auteur-asc") {
+      const aAuteur = (a.auteurs || [])[0] || "";
+      const bAuteur = (b.auteurs || [])[0] || "";
+      return aAuteur.localeCompare(bAuteur) || a.titre.localeCompare(b.titre);
+    }
+    if (sort === "serie") {
+      const aSerie = a.serie || "";
+      const bSerie = b.serie || "";
+      if (aSerie !== bSerie) {
+        if (!aSerie) return 1;
+        if (!bSerie) return -1;
+        return aSerie.localeCompare(bSerie);
+      }
+      if (aSerie) {
+        return (parseFloat(a.tome) || 0) - (parseFloat(b.tome) || 0);
+      }
+      return a.titre.localeCompare(b.titre);
+    }
+    return 0;
+  });
+
+  const container = document.getElementById("livres-list");
+  container.innerHTML = "";
+  if (list.length === 0) {
+    container.innerHTML = '<div class="empty-state">Aucun livre pour le moment. Appuie sur + pour en ajouter un.</div>';
+    return;
+  }
+  list.forEach(l => {
+    const card = document.createElement("div");
+    card.className = "card";
+    const coverHtml = l.cover
+      ? `<img src="${l.cover}" alt="couverture">`
+      : `<div class="cover-placeholder"></div>`;
+    card.innerHTML = `
+      ${coverHtml}
+      <div class="card-body">
+        <h3>${escapeHtml(l.titre)}</h3>
+        <div class="meta">${escapeHtml((l.auteurs || []).join(", "))}</div>
+        ${l.serie ? `<div class="meta">📖 ${escapeHtml(l.serie)}${l.tome ? " — Tome " + escapeHtml(String(l.tome)) : ""}</div>` : ""}
+        <p>${escapeHtml(truncate(l.resume, 90))}</p>
+        <div class="tag-row">${(l.tags || []).map(t => `<span class="tag-chip">${escapeHtml(t)}</span>`).join("")}</div>
+      </div>
+      <div class="card-actions">
+        <button class="icon-btn" data-action="edit-livre" data-id="${l.id}">✏️</button>
+        <button class="icon-btn" data-action="delete-livre" data-id="${l.id}">🗑️</button>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+// ---------- Rendering: Notes ----------
+function renderNotesTagFilter() {
+  const container = document.getElementById("notes-tagfilter");
+  const tags = getAllTags(notes);
+  container.innerHTML = "";
+  tags.forEach(tag => {
+    const chip = document.createElement("span");
+    chip.className = "tag-chip filterable" + (notesTagFilter === tag ? " selected" : "");
+    chip.textContent = tag;
+    chip.onclick = () => {
+      notesTagFilter = notesTagFilter === tag ? null : tag;
+      renderNotesTagFilter();
+      renderNotes();
+    };
+    container.appendChild(chip);
+  });
+}
+
+function renderNotes() {
+  const search = document.getElementById("notes-search").value.trim().toLowerCase();
+  let list = notes.filter(n => {
+    const matchesSearch = !search ||
+      n.titre.toLowerCase().includes(search) ||
+      (n.texte || "").toLowerCase().includes(search);
+    const matchesTag = !notesTagFilter || (n.tags || []).includes(notesTagFilter);
+    return matchesSearch && matchesTag;
+  });
+  list.sort((a, b) => b.dateAdded - a.dateAdded);
+
+  const container = document.getElementById("notes-list");
+  container.innerHTML = "";
+  if (list.length === 0) {
+    container.innerHTML = '<div class="empty-state">Aucune note pour le moment. Appuie sur + pour en ajouter une.</div>';
+    return;
+  }
+  list.forEach(n => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="card-body">
+        <h3>${escapeHtml(n.titre)}</h3>
+        <p>${escapeHtml(truncate(n.texte, 120))}</p>
+        <div class="tag-row">${(n.tags || []).map(t => `<span class="tag-chip">${escapeHtml(t)}</span>`).join("")}</div>
+      </div>
+      <div class="card-actions">
+        <button class="icon-btn" data-action="edit-note" data-id="${n.id}">✏️</button>
+        <button class="icon-btn" data-action="delete-note" data-id="${n.id}">🗑️</button>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function escapeHtml(str) {
+  if (!str) return "";
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function truncate(str, len) {
+  if (!str) return "";
+  return str.length > len ? str.slice(0, len) + "…" : str;
+}
+
+// ---------- Modal: Livre ----------
+const modalLivre = document.getElementById("modal-livre");
+
+function openLivreModal(livre) {
+  editingLivreId = livre ? livre.id : null;
+  pendingCoverData = livre ? livre.cover : null;
+  document.getElementById("livre-modal-title").textContent = livre ? "Modifier le livre" : "Ajouter un livre";
+  document.getElementById("livre-titre").value = livre ? livre.titre : "";
+  document.getElementById("livre-auteur").value = livre ? (livre.auteurs || []).join("; ") : "";
+  document.getElementById("livre-serie").value = livre ? livre.serie || "" : "";
+  document.getElementById("livre-tome").value = livre ? livre.tome || "" : "";
+  document.getElementById("livre-resume").value = livre ? livre.resume || "" : "";
+  document.getElementById("livre-tags").value = livre ? (livre.tags || []).join(", ") : "";
+  document.getElementById("livre-cover-input").value = "";
+  const preview = document.getElementById("livre-cover-preview");
+  if (pendingCoverData) {
+    preview.src = pendingCoverData;
+    preview.style.display = "";
+  } else {
+    preview.style.display = "none";
+  }
+  modalLivre.classList.add("open");
+}
+
+document.getElementById("livre-cover-input").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    pendingCoverData = ev.target.result;
+    const preview = document.getElementById("livre-cover-preview");
+    preview.src = pendingCoverData;
+    preview.style.display = "";
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById("livre-cancel").onclick = () => modalLivre.classList.remove("open");
+
+document.getElementById("livre-save").onclick = async () => {
+  const titre = document.getElementById("livre-titre").value.trim();
+  if (!titre) { alert("Le titre est obligatoire."); return; }
+  const tags = document.getElementById("livre-tags").value
+    .split(",").map(t => t.trim()).filter(Boolean);
+  const auteurs = document.getElementById("livre-auteur").value
+    .split(";").map(a => a.trim()).filter(Boolean);
+  const item = {
+    id: editingLivreId || uid(),
+    titre,
+    auteurs,
+    serie: document.getElementById("livre-serie").value.trim(),
+    tome: document.getElementById("livre-tome").value.trim(),
+    resume: document.getElementById("livre-resume").value.trim(),
+    tags,
+    cover: pendingCoverData || null,
+    dateAdded: editingLivreId ? (livres.find(l => l.id === editingLivreId)?.dateAdded || Date.now()) : Date.now()
+  };
+  await storePut("livres", item);
+  livres = await storeGetAll("livres");
+  renderLivresTagFilter();
+  renderLivres();
+  modalLivre.classList.remove("open");
+};
+
+// ---------- Modal: Note ----------
+const modalNote = document.getElementById("modal-note");
+
+function openNoteModal(note) {
+  editingNoteId = note ? note.id : null;
+  document.getElementById("note-modal-title").textContent = note ? "Modifier la note" : "Ajouter une note";
+  document.getElementById("note-titre").value = note ? note.titre : "";
+  document.getElementById("note-texte").value = note ? note.texte || "" : "";
+  document.getElementById("note-tags").value = note ? (note.tags || []).join(", ") : "";
+  modalNote.classList.add("open");
+}
+
+document.getElementById("note-cancel").onclick = () => modalNote.classList.remove("open");
+
+document.getElementById("note-save").onclick = async () => {
+  const titre = document.getElementById("note-titre").value.trim();
+  if (!titre) { alert("Le titre est obligatoire."); return; }
+  const tags = document.getElementById("note-tags").value
+    .split(",").map(t => t.trim()).filter(Boolean);
+  const item = {
+    id: editingNoteId || uid(),
+    titre,
+    texte: document.getElementById("note-texte").value.trim(),
+    tags,
+    dateAdded: editingNoteId ? (notes.find(n => n.id === editingNoteId)?.dateAdded || Date.now()) : Date.now()
+  };
+  await storePut("notes", item);
+  notes = await storeGetAll("notes");
+  renderNotesTagFilter();
+  renderNotes();
+  modalNote.classList.remove("open");
+};
+
+// ---------- Rendering: Todo ----------
+function renderListRow() {
+  const row = document.getElementById("todo-listrow");
+  row.innerHTML = "";
+  listes.forEach(l => {
+    const chip = document.createElement("div");
+    chip.className = "liste-chip" + (currentListeId === l.id ? " selected" : "");
+    chip.textContent = l.nom;
+    chip.onclick = () => {
+      currentListeId = l.id;
+      todoTagFilter = null;
+      renderListRow();
+      renderTodoView();
+    };
+    row.appendChild(chip);
+  });
+  const addChip = document.createElement("div");
+  addChip.className = "liste-chip";
+  addChip.textContent = "+ Nouvelle liste";
+  addChip.onclick = () => openListeModal();
+  row.appendChild(addChip);
+}
+
+function renderTodoView() {
+  const emptyListes = document.getElementById("todo-empty-listes");
+  const content = document.getElementById("todo-content");
+  if (listes.length === 0) {
+    emptyListes.style.display = "";
+    content.style.display = "none";
+    return;
+  }
+  emptyListes.style.display = "none";
+  if (!currentListeId || !listes.find(l => l.id === currentListeId)) {
+    currentListeId = listes[0].id;
+    renderListRow();
+  }
+  content.style.display = "";
+  const liste = listes.find(l => l.id === currentListeId);
+  document.getElementById("todo-current-liste-name").textContent = liste ? liste.nom : "";
+  renderTodoTagFilter();
+  renderTaches();
+}
+
+function renderTodoTagFilter() {
+  const container = document.getElementById("todo-tagfilter");
+  const tasksInListe = taches.filter(t => t.listeId === currentListeId && !t.fait);
+  const tags = getAllTags(tasksInListe);
+  container.innerHTML = "";
+  tags.forEach(tag => {
+    const chip = document.createElement("span");
+    chip.className = "tag-chip filterable" + (todoTagFilter === tag ? " selected" : "");
+    chip.textContent = tag;
+    chip.onclick = () => {
+      todoTagFilter = todoTagFilter === tag ? null : tag;
+      renderTodoTagFilter();
+      renderTaches();
+    };
+    container.appendChild(chip);
+  });
+}
+
+const PRIORITE_ORDER = { haute: 0, moyenne: 1, basse: 2 };
+const PRIORITE_LABEL = { haute: "Haute", moyenne: "Moyenne", basse: "Basse" };
+const RECURRENCE_LABEL = { daily: "Quotidienne", weekly: "Hebdomadaire", monthly: "Mensuelle" };
+
+function addRecurrence(isoDate, recurrence) {
+  let d;
+  if (isoDate) {
+    const [y, m, day] = isoDate.split("-").map(Number);
+    d = new Date(y, m - 1, day);
+  } else {
+    d = new Date();
+    d.setHours(0, 0, 0, 0);
+  }
+  if (recurrence === "daily") d.setDate(d.getDate() + 1);
+  else if (recurrence === "weekly") d.setDate(d.getDate() + 7);
+  else if (recurrence === "monthly") d.setMonth(d.getMonth() + 1);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function renderTaches() {
+  const sort = document.getElementById("todo-sort").value;
+  let list = taches.filter(t => t.listeId === currentListeId && !t.fait);
+  if (todoTagFilter) {
+    list = list.filter(t => (t.tags || []).includes(todoTagFilter));
+  }
+
+  list.sort((a, b) => {
+    if (sort === "echeance") {
+      if (!a.dateEcheance && !b.dateEcheance) return 0;
+      if (!a.dateEcheance) return 1;
+      if (!b.dateEcheance) return -1;
+      return a.dateEcheance.localeCompare(b.dateEcheance);
+    }
+    if (sort === "priorite") {
+      return PRIORITE_ORDER[a.priorite] - PRIORITE_ORDER[b.priorite];
+    }
+    if (sort === "date-desc") return b.dateAdded - a.dateAdded;
+    return 0;
+  });
+
+  const container = document.getElementById("todo-list");
+  container.innerHTML = "";
+  if (list.length === 0) {
+    container.innerHTML = '<div class="empty-state">Aucune tâche dans cette liste. Appuie sur + pour en ajouter une.</div>';
+    return;
+  }
+  list.forEach(t => {
+    const card = document.createElement("div");
+    card.className = "card";
+    const dateLabel = t.dateEcheance ? formatDateFr(t.dateEcheance) : "";
+    const recurrenceLabel = RECURRENCE_LABEL[t.recurrence] || "";
+    card.innerHTML = `
+      <input type="checkbox" class="task-checkbox" data-action="toggle-tache" data-id="${t.id}">
+      <div class="card-body">
+        <h3>${escapeHtml(t.texte)}</h3>
+        <div class="tag-row">
+          <span class="priority-badge priority-${t.priorite}">${PRIORITE_LABEL[t.priorite]}</span>
+          ${dateLabel ? `<span class="tag-chip">📅 ${dateLabel}</span>` : ""}
+          ${recurrenceLabel ? `<span class="tag-chip">🔁 ${recurrenceLabel}</span>` : ""}
+          ${(t.tags || []).map(tag => `<span class="tag-chip">${escapeHtml(tag)}</span>`).join("")}
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="icon-btn" data-action="edit-tache" data-id="${t.id}">✏️</button>
+        <button class="icon-btn" data-action="delete-tache" data-id="${t.id}">🗑️</button>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function formatDateFr(isoDate) {
+  const [y, m, d] = isoDate.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+// ---------- Modal: Liste ----------
+const modalListe = document.getElementById("modal-liste");
+
+function openListeModal() {
+  document.getElementById("liste-nom").value = "";
+  modalListe.classList.add("open");
+}
+
+document.getElementById("liste-cancel").onclick = () => modalListe.classList.remove("open");
+
+document.getElementById("liste-save").onclick = async () => {
+  const nom = document.getElementById("liste-nom").value.trim();
+  if (!nom) { alert("Le nom de la liste est obligatoire."); return; }
+  try {
+    const item = { id: uid(), nom, dateAdded: Date.now() };
+    await storePut("listes", item);
+    listes = await storeGetAll("listes");
+    currentListeId = item.id;
+    renderListRow();
+    renderTodoView();
+    modalListe.classList.remove("open");
+  } catch (err) {
+    alert("Impossible de créer la liste : " + (err && err.message ? err.message : err));
+    console.error(err);
+  }
+};
+
+document.getElementById("todo-delete-liste").addEventListener("click", async () => {
+  if (!currentListeId) return;
+  const liste = listes.find(l => l.id === currentListeId);
+  if (!liste) return;
+  if (!confirm(`Supprimer la liste "${liste.nom}" et toutes ses tâches ?`)) return;
+  const tachesToDelete = taches.filter(t => t.listeId === currentListeId);
+  for (const t of tachesToDelete) {
+    await storeDelete("taches", t.id);
+  }
+  await storeDelete("listes", currentListeId);
+  listes = await storeGetAll("listes");
+  taches = await storeGetAll("taches");
+  currentListeId = null;
+  renderListRow();
+  renderTodoView();
+});
+
+// ---------- Modal: Tache ----------
+const modalTache = document.getElementById("modal-tache");
+
+function openTacheModal(tache) {
+  editingTacheId = tache ? tache.id : null;
+  document.getElementById("tache-modal-title").textContent = tache ? "Modifier la tâche" : "Ajouter une tâche";
+  document.getElementById("tache-texte").value = tache ? tache.texte : "";
+  document.getElementById("tache-date").value = tache ? tache.dateEcheance || "" : "";
+  document.getElementById("tache-priorite").value = tache ? tache.priorite : "moyenne";
+  document.getElementById("tache-recurrence").value = tache ? (tache.recurrence || "aucune") : "aucune";
+  document.getElementById("tache-tags").value = tache ? (tache.tags || []).join(", ") : "";
+  modalTache.classList.add("open");
+}
+
+document.getElementById("tache-cancel").onclick = () => modalTache.classList.remove("open");
+
+document.getElementById("tache-save").onclick = async () => {
+  const texte = document.getElementById("tache-texte").value.trim();
+  if (!texte) { alert("Le texte de la tâche est obligatoire."); return; }
+  if (!currentListeId) { alert("Crée d'abord une liste."); return; }
+  const tags = document.getElementById("tache-tags").value
+    .split(",").map(t => t.trim()).filter(Boolean);
+  const item = {
+    id: editingTacheId || uid(),
+    listeId: currentListeId,
+    texte,
+    dateEcheance: document.getElementById("tache-date").value || null,
+    priorite: document.getElementById("tache-priorite").value,
+    recurrence: document.getElementById("tache-recurrence").value,
+    tags,
+    fait: editingTacheId ? (taches.find(t => t.id === editingTacheId)?.fait || false) : false,
+    dateAdded: editingTacheId ? (taches.find(t => t.id === editingTacheId)?.dateAdded || Date.now()) : Date.now()
+  };
+  await storePut("taches", item);
+  taches = await storeGetAll("taches");
+  renderTodoTagFilter();
+  renderTaches();
+  modalTache.classList.remove("open");
+};
+
+// ---------- FAB ----------
+document.getElementById("fab-add").addEventListener("click", () => {
+  if (currentTab() === "livres") openLivreModal(null);
+  else if (currentTab() === "notes") openNoteModal(null);
+  else if (currentTab() === "todo") {
+    if (listes.length === 0) openListeModal();
+    else openTacheModal(null);
+  }
+});
+
+// ---------- Delegated click for edit/delete ----------
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-action]");
+  if (!btn) return;
+  const id = btn.dataset.id;
+  const action = btn.dataset.action;
+
+  if (action === "edit-livre") {
+    openLivreModal(livres.find(l => l.id === id));
+  } else if (action === "delete-livre") {
+    if (confirm("Supprimer ce livre ?")) {
+      await storeDelete("livres", id);
+      livres = await storeGetAll("livres");
+      renderLivresTagFilter();
+      renderLivres();
+    }
+  } else if (action === "edit-note") {
+    openNoteModal(notes.find(n => n.id === id));
+  } else if (action === "delete-note") {
+    if (confirm("Supprimer cette note ?")) {
+      await storeDelete("notes", id);
+      notes = await storeGetAll("notes");
+      renderNotesTagFilter();
+      renderNotes();
+    }
+  } else if (action === "toggle-tache") {
+    const tache = taches.find(t => t.id === id);
+    if (tache) {
+      tache.fait = true;
+      await storePut("taches", tache);
+      if (tache.recurrence && tache.recurrence !== "aucune") {
+        const nextDate = addRecurrence(tache.dateEcheance, tache.recurrence);
+        const nextTache = {
+          id: uid(),
+          listeId: tache.listeId,
+          texte: tache.texte,
+          dateEcheance: nextDate,
+          priorite: tache.priorite,
+          recurrence: tache.recurrence,
+          tags: tache.tags || [],
+          fait: false,
+          dateAdded: Date.now()
+        };
+        await storePut("taches", nextTache);
+      }
+      taches = await storeGetAll("taches");
+      renderTodoTagFilter();
+      renderTaches();
+    }
+  } else if (action === "edit-tache") {
+    openTacheModal(taches.find(t => t.id === id));
+  } else if (action === "delete-tache") {
+    if (confirm("Supprimer cette tâche ?")) {
+      await storeDelete("taches", id);
+      taches = await storeGetAll("taches");
+      renderTodoTagFilter();
+      renderTaches();
+    }
+  }
+});
+
+// ---------- Search/sort listeners ----------
+document.getElementById("livres-search").addEventListener("input", renderLivres);
+document.getElementById("livres-sort").addEventListener("change", renderLivres);
+document.getElementById("notes-search").addEventListener("input", renderNotes);
+document.getElementById("todo-sort").addEventListener("change", renderTaches);
+
+// ---------- Service Worker (installation PWA + hors-ligne) ----------
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch((err) => console.warn("SW non enregistré:", err));
+  });
+}
+
+// ---------- Init ----------
+(async function init() {
+  try {
+    await openDB();
+    livres = await storeGetAll("livres");
+    notes = await storeGetAll("notes");
+    listes = await storeGetAll("listes");
+    taches = await storeGetAll("taches");
+    renderLivresTagFilter();
+    renderLivres();
+    renderNotesTagFilter();
+    renderNotes();
+    renderListRow();
+    renderTodoView();
+  } catch (err) {
+    alert("Erreur au chargement de l'app : " + (err && err.message ? err.message : err) + "\nFerme les autres onglets ouverts sur cette app et recharge la page.");
+    console.error(err);
+  }
+})();
+</script>
+</body>
+</html>
