@@ -1,4 +1,4 @@
-const CACHE_NAME = "mon-petit-monde-v1";
+const CACHE_NAME = "mon-petit-monde-v2";
 const ASSETS = [
   "./index.html",
   "./manifest.json",
@@ -23,6 +23,23 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  const isPage = event.request.mode === "navigate" || event.request.url.endsWith("index.html");
+
+  if (isPage) {
+    // Priorité au réseau pour toujours avoir la dernière version quand on est en ligne
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // Cache prioritaire pour les fichiers statiques (icônes, manifest)
   event.respondWith(
     caches.match(event.request).then((cached) => {
       return (
