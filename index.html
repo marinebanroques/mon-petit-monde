@@ -200,6 +200,15 @@
   .priority-basse { background: #dcead0; color: #4f7a3f; }
   .priority-moyenne { background: #f7e4bf; color: #a06e1f; }
   .priority-haute { background: #f3d3cd; color: #b23f2d; }
+  .categorie-badge {
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-weight: 600;
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+  }
   .liste-chip {
     font-size: 13px;
     padding: 8px 14px;
@@ -249,6 +258,7 @@
 <main>
   <!-- LIVRES -->
   <section id="view-livres">
+    <div id="livres-count" style="font-size:13px; color:var(--ink-soft); margin-bottom:10px;"></div>
     <div class="toolbar">
       <input type="text" id="livres-search" class="search-box" placeholder="Rechercher un livre, un auteur...">
       <select id="livres-sort" class="sort-box">
@@ -260,6 +270,7 @@
         <option value="serie">Par série (tomes ensemble)</option>
       </select>
     </div>
+    <div id="livres-categoriefilter" class="tag-row"></div>
     <div id="livres-tagfilter" class="tag-row"></div>
     <div id="livres-list" class="card-list"></div>
   </section>
@@ -324,6 +335,16 @@
         <label>Tome</label>
         <input type="text" id="livre-tome" placeholder="1">
       </div>
+    </div>
+    <div class="field">
+      <label>Catégorie</label>
+      <select id="livre-categorie">
+        <option value="">Non classé</option>
+        <option value="roman">Roman</option>
+        <option value="bd">BD</option>
+        <option value="comic">Comic</option>
+        <option value="manga">Manga</option>
+      </select>
     </div>
     <div class="field">
       <label>Résumé</label>
@@ -500,6 +521,7 @@ let notes = [];
 let listes = [];
 let taches = [];
 let livresTagFilter = null;
+let livresCategorieFilter = null;
 let notesTagFilter = null;
 let editingLivreId = null;
 let editingNoteId = null;
@@ -531,6 +553,24 @@ function getAllTags(items) {
   return [...set].sort();
 }
 
+const CATEGORIE_LABEL = { roman: "Roman", bd: "BD", comic: "Comic", manga: "Manga" };
+
+function renderLivresCategorieFilter() {
+  const container = document.getElementById("livres-categoriefilter");
+  container.innerHTML = "";
+  Object.entries(CATEGORIE_LABEL).forEach(([value, label]) => {
+    const chip = document.createElement("span");
+    chip.className = "tag-chip filterable" + (livresCategorieFilter === value ? " selected" : "");
+    chip.textContent = label;
+    chip.onclick = () => {
+      livresCategorieFilter = livresCategorieFilter === value ? null : value;
+      renderLivresCategorieFilter();
+      renderLivres();
+    };
+    container.appendChild(chip);
+  });
+}
+
 function renderLivresTagFilter() {
   const container = document.getElementById("livres-tagfilter");
   const tags = getAllTags(livres);
@@ -551,13 +591,16 @@ function renderLivresTagFilter() {
 function renderLivres() {
   const search = document.getElementById("livres-search").value.trim().toLowerCase();
   const sort = document.getElementById("livres-sort").value;
+  document.getElementById("livres-count").textContent =
+    livres.length === 0 ? "" : `${livres.length} livre${livres.length > 1 ? "s" : ""} au total`;
   let list = livres.filter(l => {
     const matchesSearch = !search ||
       l.titre.toLowerCase().includes(search) ||
       (l.auteurs || []).join(" ").toLowerCase().includes(search) ||
       (l.serie || "").toLowerCase().includes(search);
     const matchesTag = !livresTagFilter || (l.tags || []).includes(livresTagFilter);
-    return matchesSearch && matchesTag;
+    const matchesCategorie = !livresCategorieFilter || l.categorie === livresCategorieFilter;
+    return matchesSearch && matchesTag && matchesCategorie;
   });
 
   list.sort((a, b) => {
@@ -603,6 +646,7 @@ function renderLivres() {
       <div class="card-body">
         <h3>${escapeHtml(l.titre)}</h3>
         <div class="meta">${escapeHtml((l.auteurs || []).join(", "))}</div>
+        ${l.categorie ? `<div class="tag-row" style="margin-top:4px;"><span class="categorie-badge">${CATEGORIE_LABEL[l.categorie]}</span></div>` : ""}
         ${l.serie ? `<div class="meta">📖 ${escapeHtml(l.serie)}${l.tome ? " — Tome " + escapeHtml(String(l.tome)) : ""}</div>` : ""}
         <p>${escapeHtml(truncate(l.resume, 90))}</p>
         <div class="tag-row">${(l.tags || []).map(t => `<span class="tag-chip">${escapeHtml(t)}</span>`).join("")}</div>
@@ -692,6 +736,7 @@ function openLivreModal(livre) {
   document.getElementById("livre-auteur").value = livre ? (livre.auteurs || []).join("; ") : "";
   document.getElementById("livre-serie").value = livre ? livre.serie || "" : "";
   document.getElementById("livre-tome").value = livre ? livre.tome || "" : "";
+  document.getElementById("livre-categorie").value = livre ? livre.categorie || "" : "";
   document.getElementById("livre-resume").value = livre ? livre.resume || "" : "";
   document.getElementById("livre-tags").value = livre ? (livre.tags || []).join(", ") : "";
   document.getElementById("livre-cover-input").value = "";
@@ -733,6 +778,7 @@ document.getElementById("livre-save").onclick = async () => {
     auteurs,
     serie: document.getElementById("livre-serie").value.trim(),
     tome: document.getElementById("livre-tome").value.trim(),
+    categorie: document.getElementById("livre-categorie").value,
     resume: document.getElementById("livre-resume").value.trim(),
     tags,
     cover: pendingCoverData || null,
@@ -1094,6 +1140,7 @@ if ("serviceWorker" in navigator) {
     notes = await storeGetAll("notes");
     listes = await storeGetAll("listes");
     taches = await storeGetAll("taches");
+    renderLivresCategorieFilter();
     renderLivresTagFilter();
     renderLivres();
     renderNotesTagFilter();
